@@ -144,7 +144,17 @@
 
         //-- function for showing testimonials data on admin page
         function ssTestiShowDataHandlers() {
-            $message = $this->errorr;
+            global $wpdb;
+
+            //-- create testimonial table (using WP List Table)
+            $testimonials_table = new SS_Testimonial_Table();
+            $testimonials_table->prepare_items();
+            
+            //-- success delete message
+            $message = '';
+            if ('delete' === $testimonials_table->current_action() && is_array( $_REQUEST['id'] ) ) {
+                $message = '<div class="updated below-h2" id="message"><p>' . sprintf(__('Items deleted: %d', 'ss_testimonial'), count($_REQUEST['id'])) . '</p></div>';
+            }
     ?>
 
         <div class="wrap bismoko-testimonial-container">
@@ -156,8 +166,8 @@
             
             <!-- testimonial table -->
             <form class="testimonial-table" method="GET">
-                <!--<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>"/>-->
-                <?php //$testimonials_table->display() ?>
+                <input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>"/>
+                <?php $testimonials_table->display() ?>
             </form>
             <!-- end testimonial table -->
         </div>
@@ -284,6 +294,8 @@
      * --------------------------------------------------------------------------
      **/
     class SS_Testimonial_Table extends WP_List_Table {
+        var $ss_testimonial_main_class;
+
         function __construct() {
             global $status, $page;
 
@@ -291,6 +303,9 @@
                 'singular' => 'testimonial',
                 'plural' => 'testimonials',
             ) );
+
+            //-- create main testimonial class object
+            $this->ss_testimonial_main_class = new SS_Testimonial_Main();
         }
         
         //-- default column
@@ -329,6 +344,7 @@
             return $columns;
         }
         
+        //-- bulk checkbox action
         function get_bulk_actions() {
             $actions = array(
                 'delete' => 'Delete'
@@ -336,6 +352,7 @@
             return $actions;
         }
         
+        //-- sortable column
         function get_sortable_columns() {
             $sortable_columns = array(
                 'testimonial_name' => array('testimonial_name', true),
@@ -346,9 +363,11 @@
             return $sortable_columns;
         }
         
+        //-- bulk action handlers
         function process_bulk_action() {
             global $wpdb;
-            $table_name = 'wp_bismoko_testimonial';
+
+            $table_name = $this->ss_testimonial_main_class->ss_testi_table_prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
 
             if ( 'delete' === $this->current_action() ) {
                 $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
@@ -364,7 +383,7 @@
         
         function prepare_items() {
             global $wpdb;
-            $table_name = 'wp_bismoko_testimonial';
+            $table_name = $this->ss_testimonial_main_class->ss_testi_table_prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
 
             $per_page = 10; // constant, how much records will be shown per page
 
@@ -398,8 +417,6 @@
             ));
         }
     }
-
-
 
 
     //-- run main class
