@@ -130,8 +130,8 @@
                 //-- end get post data
                 
 
-                //-- insert into database if there is no error
-                if( empty( $testimonial_inputs[ 'testimonial_name_error' ] ) && empty( $testimonial_inputs[ 'testimonial_email_error' ] ) && empty( $testimonial_inputs[ 'testimonial_phone_error' ] ) && empty( $testimonial_inputs[ 'testimonial_content_error' ] ) ) {
+                //-- insert into database if there is no error,
+                if( count( $testimonial_errors ) == 0 ) {
                     global $wpdb;
                 
                     $wpdb->insert( 
