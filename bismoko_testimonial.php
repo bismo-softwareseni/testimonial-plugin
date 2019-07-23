@@ -26,16 +26,12 @@
      * --------------------------------------------------------------------------
      **/
     class SS_Testimonial_Main {
-        var $ss_testi_table_prefix;
         var $ss_testi_table_name = "ss_testimonial";
 
         function __construct() {
             global $wpdb;
 
-            //-- set testimonial table prefix
-            $this->ss_testi_table_prefix = $wpdb->prefix;
-
-            //-- check testimonial table exist or not, if not then create new table
+            //-- check testimonial table exist or not, if not then create new table xx aktifasi
             $this->ssTestiCheckCreateTestiTable();
 
             //-- register testimonial shortcode
@@ -55,10 +51,10 @@
             global $wpdb;
 
             //-- check testimonial table exist or not, if not then create new table
-            if( $wpdb->get_var("SHOW TABLES LIKE '$this->ss_testi_table_prefix.$this->ss_testi_table_name'") != $this->ss_testi_table_prefix.$this->ss_testi_table_name ) {
+            if( $wpdb->get_var("SHOW TABLES LIKE '$wpdb->prefix.$this->ss_testi_table_name'") != $wpdb->prefix.$this->ss_testi_table_name ) {
                 $ss_testi_charset_collate = $wpdb->get_charset_collate();
 
-                $ss_testi_sql = "CREATE TABLE " . $this->ss_testi_table_prefix.$this->ss_testi_table_name . " (
+                $ss_testi_sql = "CREATE TABLE " . $wpdb->prefix.$this->ss_testi_table_name . " (
                                         testimonial_id int(11) NOT NULL AUTO_INCREMENT,
                                         testimonial_name varchar(500) NOT NULL,
                                         testimonial_email varchar(500) NOT NULL,
@@ -85,7 +81,7 @@
                 global $wpdb;
                 
                 $wpdb->insert( 
-                    $this->ss_testi_table_prefix.$this->ss_testi_table_name,
+                    $wpdb->prefix.$this->ss_testi_table_name,
                     array(
                         'testimonial_name' => $testimonial_name,
                         'testimonial_email' => $testimonial_email,
@@ -251,7 +247,7 @@
                     //-- create main testimonial class object
                     $ss_testimonial_main = new SS_Testimonial_Main();
                     
-                    $testimonials = $wpdb->get_results( "SELECT * FROM " . $ss_testimonial_main->ss_testi_table_prefix.$ss_testimonial_main->ss_testi_table_name . " order by RAND() limit 1" );
+                    $testimonials = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix.$ss_testimonial_main->ss_testi_table_name . " order by RAND() limit 1" );
             
                     foreach( $testimonials as $testimonial ) {
                 ?>
@@ -367,7 +363,7 @@
         function process_bulk_action() {
             global $wpdb;
 
-            $table_name = $this->ss_testimonial_main_class->ss_testi_table_prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
+            $table_name = $wpdb->prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
 
             if ( 'delete' === $this->current_action() ) {
                 $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
@@ -383,7 +379,7 @@
         
         function prepare_items() {
             global $wpdb;
-            $table_name = $this->ss_testimonial_main_class->ss_testi_table_prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
+            $table_name = $wpdb->prefix.$this->ss_testimonial_main_class->ss_testi_table_name;
 
             $per_page = 10; // constant, how much records will be shown per page
 
