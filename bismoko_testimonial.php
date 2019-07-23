@@ -1,6 +1,6 @@
 <?php
     /*
-        Plugin Name: Bismoko Widyatno Testimonial
+        Plugin Name: SoftwareSeni Testimonial
         Description: Display testimonial form
         Version: 2.0
         Author: Bismoko Widyatno
@@ -28,7 +28,6 @@
     class SS_Testimonial_Main {
         var $ss_testi_table_prefix;
         var $ss_testi_table_name = "ss_testimonial";
-        var $errorr;
 
         function __construct() {
             global $wpdb;
@@ -176,6 +175,7 @@
         }
         //-- end ssTestiShowDataHandlers()
     }
+    //-- end SS_Testimonial_Main
 
 
 
@@ -417,7 +417,7 @@
             ));
         }
     }
-
+    //-- end SS_Testimonial_Table
 
     //-- run main class
     $ss_testimonial_main = new SS_Testimonial_Main();
