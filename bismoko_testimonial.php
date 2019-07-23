@@ -68,51 +68,107 @@
             dbDelta( $ss_testi_sql );
         }
 
-        //-- function for storing testimonials into database
-        function ssTestiFormSubmitHandler() {
-            if( isset( $_POST[ 'testimonial-submit' ] ) ) {
-                //-- sanitize input
-                $testimonial_name       = sanitize_text_field( $_POST[ 'testimonial-name' ] );
-                $testimonial_email      = sanitize_email( $_POST[ 'testimonial-email' ] );
-                $testimonial_phone      = sanitize_text_field( $_POST[ 'testimonial-phone' ] );
-                $testimonial_content    = esc_textarea( $_POST[ 'testimonial-content' ] );
-                
-                //-- insert into database
-                global $wpdb;
-                
-                $wpdb->insert( 
-                    $wpdb->prefix.$this->ss_testi_table_name,
-                    array(
-                        'testimonial_name' => $testimonial_name,
-                        'testimonial_email' => $testimonial_email,
-                        'testimonial_phone' => $testimonial_phone,
-                        'testimonial_content' => $testimonial_content
-                    )
-                );
-                
-                //-- clear the cache
-                $wpdb->flush();
-            }
-        }
 
-        //-- function for displaying testimonial input form
+        //-- function for displaying and storing testimonial input form
         function ssTestiFormDisplay() {
+            if( isset( $_POST[ 'testimonial-submit' ] ) ) {
+                //-- get post data
+                $testimonial_name       = $_POST[ 'testimonial-name' ];
+                $testimonial_email      = $_POST[ 'testimonial-email' ];
+                $testimonial_phone      = $_POST[ 'testimonial-phone' ];
+                $testimonial_content    = $_POST[ 'testimonial-content' ];
+
+                //-- input error message variables
+                $testimonial_name_error     = "";
+                $testimonial_email_error    = "";
+                $testimonial_phone_error    = "";
+                $testimonial_content_error  = "";
+
+                //-- define input error message if theres any
+                /* name */
+                if( empty( $testimonial_name ) ) {
+                    $testimonial_name_error = "This form can't be empty";
+                } else {
+                    if( preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $testimonial_name) ) {
+                        $testimonial_name_error = "Special characters are not allowed";
+                    }
+                }
+
+                /* phone */
+                if( empty( $testimonial_phone ) ) {
+                    $testimonial_phone_error = "This form can't be empty";
+                } else {
+                    if( !is_numeric( $testimonial_phone ) ) {
+                        $testimonial_phone_error = "Only numeric value allowed";
+                    }
+                }
+
+                /* email */
+                if( empty( $testimonial_email ) ) {
+                    $testimonial_email_error = "This form can't be empty";
+                } else {
+                    if( !is_email( $testimonial_email ) ) {
+                        $testimonial_email_error = "You have to input the correct email address";
+                    }
+                }
+
+                /* content */
+                if( empty( $testimonial_content ) ) {
+                    $testimonial_content_error = "This form can't be empty";
+                } else {
+                    if( preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $testimonial_content) ) {
+                        $testimonial_content_error = "Special characters ae not allowed";
+                    }
+                }
+                //-- end define input error message if theres any 
+
+                //-- insert into database if there is no error
+                if( empty( $testimonial_name_error ) && empty( $testimonial_email_error ) && empty( $testimonial_phone_error ) && empty( $testimonial_content_error ) ) {
+                    global $wpdb;
+                
+                    $wpdb->insert( 
+                        $wpdb->prefix.$this->ss_testi_table_name,
+                        array(
+                            'testimonial_name' => sanitize_text_field( $testimonial_name ),
+                            'testimonial_email' => sanitize_email( $testimonial_email ),
+                            'testimonial_phone' => sanitize_text_field( $testimonial_phone ),
+                            'testimonial_content' => esc_textarea( $testimonial_content )
+                        )
+                    );
+                    
+                    //-- clear the cache
+                    $wpdb->flush();
+                }
+            }
+
             echo '<form action="' . esc_url( $_SERVER['REQUEST_URI'] ) . '" method="POST">';
         
             //-- name
             echo '<p>Name (required)</p>';
+            if( !empty( $testimonial_name_error ) ) {
+                echo '<p class="error-notif">' . $testimonial_name_error . '</p>';
+            }
             echo '<input required type="text" name="testimonial-name" id="testimonial-name" class="bismo-form-text" value="" style="width:100%;" />';
             
             //-- email
             echo '<p for="testimonial-email">Email (required)</p>';
+            if( !empty( $testimonial_email_error ) ) {
+                echo '<p class="error-notif">' . $testimonial_email_error . '</p>';
+            }
             echo '<input required type="email" name="testimonial-email" id="testimonial-email" class="bismo-form-text" style="width:100%;" value="" />';
             
             //-- phone number
             echo '<p for="testimonial-phone">Phone Number (required)</p>';
+            if( !empty( $testimonial_phone_error ) ) {
+                echo '<p class="error-notif">' . $testimonial_phone_error . '</p>';
+            }
             echo '<input required type="text" name="testimonial-phone" id="testimonial-phone" class="bismo-form-text" style="width:100%;" value="" />';
             
             //-- testimonial text
             echo '<p for="testimonial-content">Testimonial (required)</p>';
+            if( !empty( $testimonial_content_error ) ) {
+                echo '<p class="error-notif">' . $testimonial_content_error . '</p>';
+            }
             echo '<textarea required name="testimonial-content" id="testimonial-content" style="width:100%;" class="bismo-form-textarea"></textarea>';
             
             //-- submit button
@@ -125,7 +181,6 @@
         function ssTestiShortcodeCreate() {
             ob_start();
         
-            $this->ssTestiFormSubmitHandler();
             $this->ssTestiFormDisplay();
             
             return ob_get_clean();
