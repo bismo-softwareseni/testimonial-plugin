@@ -133,16 +133,10 @@
                 //-- insert into database if there is no error,
                 if( count( $testimonial_errors ) == 0 ) {
                     global $wpdb;
-                
-                    $wpdb->insert( 
-                        $wpdb->prefix.$this->ss_testi_table_name,
-                        array(
-                            'testimonial_name' => $testimonial_inputs[ 'testimonial_name' ],
-                            'testimonial_email' => $testimonial_inputs[ 'testimonial_email' ],
-                            'testimonial_phone' => $testimonial_inputs[ 'testimonial_phone' ],
-                            'testimonial_content' => $testimonial_inputs[ 'testimonial_content' ]
-                        )
-                    );
+                    
+                    $sql = "INSERT INTO " . $wpdb->prefix.$this->ss_testi_table_name . " (" . 
+                            implode( ',', array_keys( $testimonial_inputs ) ) . ") VALUES ('" . implode( "','", $testimonial_inputs) . "')";
+                    $wpdb->query( $sql );
                     
                     //-- clear the cache
                     $wpdb->flush();
