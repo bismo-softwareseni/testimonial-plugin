@@ -115,10 +115,6 @@
                 /* content */
                 if( empty( $testimonial_content ) ) {
                     $testimonial_content_error = "This form can't be empty";
-                } else {
-                    if( preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $testimonial_content) ) {
-                        $testimonial_content_error = "Special characters ae not allowed";
-                    }
                 }
                 //-- end define input error message if theres any 
 
