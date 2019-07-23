@@ -73,50 +73,72 @@
         function ssTestiFormDisplay() {
             if( isset( $_POST[ 'testimonial-submit' ] ) ) {
                 //-- get post data
-                $testimonial_name       = $_POST[ 'testimonial-name' ];
-                $testimonial_email      = $_POST[ 'testimonial-email' ];
-                $testimonial_phone      = $_POST[ 'testimonial-phone' ];
-                $testimonial_content    = $_POST[ 'testimonial-content' ];
 
-                //-- input error message variables
-                $testimonial_name_error     = "";
-                $testimonial_email_error    = "";
-                $testimonial_phone_error    = "";
-                $testimonial_content_error  = "";
-
-                //-- define input error message if theres any
                 /* name */
-                if( empty( $testimonial_name ) ) {
-                    $testimonial_name_error = "This form can't be empty";
-                } else {
-                    if( preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $testimonial_name) ) {
-                        $testimonial_name_error = "Special characters are not allowed";
-                    }
-                }
+                $testimonial_name        = "";
+                $testimonial_name_error  = "";
 
-                /* phone */
-                if( empty( $testimonial_phone ) ) {
-                    $testimonial_phone_error = "This form can't be empty";
-                } else {
-                    if( !is_numeric( $testimonial_phone ) ) {
-                        $testimonial_phone_error = "Only numeric value allowed";
+                if( isset( $_POST[ 'testimonial-name' ] ) ) {
+                    $testimonial_name = sanitize_text_field( $_POST[ 'testimonial-name' ] );
+
+                    //-- check form error
+                    if( empty( $_POST[ 'testimonial-name' ] ) ) {
+                        $testimonial_name_error = "This form can't be empty";
+                    } else {
+                        if( preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $_POST[ 'testimonial-name' ] ) ) {
+                            $testimonial_name_error = "Special characters are not allowed";
+                        }
                     }
                 }
 
                 /* email */
-                if( empty( $testimonial_email ) ) {
-                    $testimonial_email_error = "This form can't be empty";
-                } else {
-                    if( !is_email( $testimonial_email ) ) {
-                        $testimonial_email_error = "You have to input the correct email address";
+                $testimonial_email         = "";
+                $testimonial_email_error   = "";
+
+                if( isset( $_POST[ 'testimonial-email' ] ) ) {
+                    $testimonial_email = sanitize_email( $_POST[ 'testimonial-email' ] );
+
+                    //-- check form error
+                    if( empty( $_POST[ 'testimonial-email' ] ) ) {
+                        $testimonial_email_error = "This form can't be empty";
+                    } else {
+                        if( !is_email( $_POST[ 'testimonial-email' ] ) ) {
+                            $testimonial_email_error = "You have to input the correct email address";
+                        }
+                    }
+                }
+
+                /* phone */
+                $testimonial_phone          = "";
+                $testimonial_phone_error    = "";
+
+                if( isset( $_POST[ 'testimonial-phone' ] ) ) {
+                    $testimonial_phone = sanitize_text_field( $_POST[ 'testimonial-phone' ] );
+
+                    //-- check form error
+                    if( empty( $_POST[ 'testimonial-phone' ] ) ) {
+                        $testimonial_phone_error = "This form can't be empty";
+                    } else {
+                        if( !is_numeric( $_POST[ 'testimonial-phone' ] ) ) {
+                            $testimonial_phone_error = "Only numeric value allowed";
+                        }
                     }
                 }
 
                 /* content */
-                if( empty( $testimonial_content ) ) {
-                    $testimonial_content_error = "This form can't be empty";
+                $testimonial_content        = "";
+                $testimonial_content_error  = "";
+
+                if( isset( $_POST[ 'testimonial-content' ] ) ) {
+                    $testimonial_content = esc_textarea( $_POST[ 'testimonial-content' ] );
+
+                    //-- check form error
+                    if( empty( $_POST[ 'testimonial-content' ] ) ) {
+                        $testimonial_content_error = "This form can't be empty";
+                    }
                 }
-                //-- end define input error message if theres any 
+                //-- end get post data
+                
 
                 //-- insert into database if there is no error
                 if( empty( $testimonial_name_error ) && empty( $testimonial_email_error ) && empty( $testimonial_phone_error ) && empty( $testimonial_content_error ) ) {
@@ -125,10 +147,10 @@
                     $wpdb->insert( 
                         $wpdb->prefix.$this->ss_testi_table_name,
                         array(
-                            'testimonial_name' => sanitize_text_field( $testimonial_name ),
-                            'testimonial_email' => sanitize_email( $testimonial_email ),
-                            'testimonial_phone' => sanitize_text_field( $testimonial_phone ),
-                            'testimonial_content' => esc_textarea( $testimonial_content )
+                            'testimonial_name' => $testimonial_name,
+                            'testimonial_email' => $testimonial_email,
+                            'testimonial_phone' => $testimonial_phone,
+                            'testimonial_content' => $testimonial_content
                         )
                     );
                     
