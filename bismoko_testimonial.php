@@ -31,8 +31,8 @@
         function __construct() {
             global $wpdb;
 
-            //-- check testimonial table exist or not, if not then create new table xx aktifasi
-            $this->ssTestiCheckCreateTestiTable();
+            //-- check testimonial table exist or not, if not then create new table ( execute this only when activating the plugin )
+            register_activation_hook( __FILE__, array( $this, 'ssTestiCheckCreateTestiTable' ) );
 
             //-- register testimonial shortcode
             add_shortcode( 'ss_testimonial', array( $this, 'ssTestiShortcodeCreate' ) );
