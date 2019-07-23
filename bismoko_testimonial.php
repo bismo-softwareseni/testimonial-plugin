@@ -39,6 +39,14 @@
             //-- check testimonial table exist or not, if not then create new table
             $this->ssTestiCheckCreateTestiTable();
 
+            //-- register testimonial shortcode
+            add_shortcode( 'ss_testimonial', array( $this, 'ssTestiShortcodeCreate' ) );
+            
+            //-- register widget
+            add_action( 'widgets_init', function() {
+                register_widget( 'SS_Testimonial_Widget' );
+            } );
+
             //-- register admin page
             add_action( 'admin_menu', array( $this, 'ssTestiCreateAdminMenu' ) );
         }
@@ -92,7 +100,41 @@
             }
         }
 
-        //-- function for displaying
+        //-- function for displaying testimonial input form
+        function ssTestiFormDisplay() {
+            echo '<form action="' . esc_url( $_SERVER['REQUEST_URI'] ) . '" method="POST">';
+        
+            //-- name
+            echo '<p>Name (required)</p>';
+            echo '<input required type="text" name="testimonial-name" id="testimonial-name" class="bismo-form-text" value="" style="width:100%;" />';
+            
+            //-- email
+            echo '<p for="testimonial-email">Email (required)</p>';
+            echo '<input required type="email" name="testimonial-email" id="testimonial-email" class="bismo-form-text" style="width:100%;" value="" />';
+            
+            //-- phone number
+            echo '<p for="testimonial-phone">Phone Number (required)</p>';
+            echo '<input required type="text" name="testimonial-phone" id="testimonial-phone" class="bismo-form-text" style="width:100%;" value="" />';
+            
+            //-- testimonial text
+            echo '<p for="testimonial-content">Testimonial (required)</p>';
+            echo '<textarea required name="testimonial-content" id="testimonial-content" style="width:100%;" class="bismo-form-textarea"></textarea>';
+            
+            //-- submit button
+            echo '<button type="submit" name="testimonial-submit" class="bismo-form-submit-button" style="margin-top:30px;">Submit</button>';
+            
+            echo '</form>';
+        }
+
+        //-- function for creating testimonial shortcode
+        function ssTestiShortcodeCreate() {
+            ob_start();
+        
+            $this->ssTestiFormSubmitHandler();
+            $this->ssTestiFormDisplay();
+            
+            return ob_get_clean();
+        }
 
         //-- function for creating testimonial admin menu
         function ssTestiCreateAdminMenu() {
@@ -124,6 +166,240 @@
         }
         //-- end ssTestiShowDataHandlers()
     }
+
+
+
+
+    /**
+     * --------------------------------------------------------------------------
+     * Class for creating testimonial widget
+     * --------------------------------------------------------------------------
+     **/
+    class SS_Testimonial_Widget extends WP_Widget {
+        public function __construct() {
+            $widget_ops = array( 
+                'classname' => 'SS_Testimonial_Widget',
+                'description' => esc_html__( 'SoftwareSeni Testimonial widget', 'ss_testimonial' )
+            );
+            parent::__construct( 'SS_Testimonial_Widget', 'SoftwareSeni Testimonial Widget', $widget_ops );
+        }
+        
+        //-- create form
+        function form( $instance ) {
+            //-- check value
+            if( $instance ) {
+                $widget_title = esc_attr( $instance[ 'widget_title' ] );
+            } else {
+                $widget_title = '';
+            }
+?>
+            <!-- widget title -->
+            <p>
+                <label for="<?php echo esc_attr( $this->get_field_id( 'widget_title' ) ); ?>">
+                  <?php echo esc_html_e( 'Widget Title :', 'ss_testimonial' ); ?>
+                </label>
+                <input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'widget_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'widget_title' ) ); ?>" type="text" value="<?php echo esc_attr( $widget_title ); ?>" />
+            </p>
+            <!-- end widget title -->
+<?php
+        }
+        
+        //-- widget update
+        function update( $new_instance, $old_instance ) {
+              $instance = $old_instance;
+
+              //-- set new value for the fields
+              $instance[ 'widget_title' ] = strip_tags( $new_instance[ 'widget_title' ] );
+
+              return $instance;
+        }
+        
+        //-- widget display
+        function widget( $args, $instance ) {
+            extract( $args );
+
+            //-- get widget options
+            $widget_title = apply_filters( 'widget_title', $instance[ 'widget_title' ] );
+            
+            echo $before_widget;
+            
+?>
+            <!-- widget testimonial container -->
+            <div class="widget-testimonial-container">
+                <!-- widget title -->
+                <?php
+                  if( $widget_title ) {
+                    echo $before_title . esc_html( $widget_title ) . $after_title;
+                  }
+                ?>
+                <!-- end widget title -->
+                
+                <!-- get testimonial data -->
+                <?php
+                    global $wpdb;
+
+                    //-- create main testimonial class object
+                    $ss_testimonial_main = new SS_Testimonial_Main();
+                    
+                    $testimonials = $wpdb->get_results( "SELECT * FROM " . $ss_testimonial_main->ss_testi_table_prefix.$ss_testimonial_main->ss_testi_table_name . " order by RAND() limit 1" );
+            
+                    foreach( $testimonials as $testimonial ) {
+                ?>
+                
+                <!-- name -->
+                <p class="testimonial-label">Name :</p>
+                <h6 class="testimonial-name"><?php echo esc_html( $testimonial->testimonial_name ); ?></h6>
+                
+                <!-- email -->
+                <p class="testimonial-label">Email :</p>
+                <h6 class="testimonial-email"><?php echo esc_html( $testimonial->testimonial_email ); ?></h6>
+                
+                <!-- phone -->
+                <p class="testimonial-label">Phone :</p>
+                <h6 class="testimonial-phone"><?php echo esc_html( $testimonial->testimonial_phone ); ?></h6>
+                
+                <!-- testimonial -->
+                <p class="testimonial-label">Testimonial :</p>
+                <h6 class="testimonial-content"><?php echo esc_html( $testimonial->testimonial_content ); ?></h6>
+                
+                <?php
+                    }
+                ?>
+                <!-- end get testimonial data -->
+            </div>
+            <!-- end widget testimonial container -->
+<?php
+            echo $after_widget;
+        }
+        //-- end widget display
+    
+    }
+    //-- end SS_Testimonial_Widget class
+
+
+
+    /**
+     * --------------------------------------------------------------------------
+     * Class for creating WP List Table for testimonial list in admin page
+     * --------------------------------------------------------------------------
+     **/
+    class SS_Testimonial_Table extends WP_List_Table {
+        function __construct() {
+            global $status, $page;
+
+            parent::__construct( array(
+                'singular' => 'testimonial',
+                'plural' => 'testimonials',
+            ) );
+        }
+        
+        //-- default column
+        function column_default($item, $column_name) {
+            return $item[ $column_name ];
+        }
+        
+        //-- checkbox column
+        function column_cb( $item ) {
+            return sprintf(
+                '<input type="checkbox" name="id[]" value="%s" />',
+                $item['testimonial_id']
+            );
+        }
+        
+        //-- delete testimonial column
+        function column_delete_testimonial( $item ) {
+            return sprintf(
+                '<a href="?page=%s&action=%s&id=%s">Delete</a>',
+                $_REQUEST['page'],
+                'delete',
+                $item['testimonial_id']
+            );
+        }
+        
+        //-- get testimonial data
+        function get_columns() {
+            $columns = array(
+                'cb' => '<input type="checkbox" />',
+                'testimonial_name' => __( 'Name', 'ss_testimonial' ),
+                'testimonial_email' => __( 'E-Mail', 'ss_testimonial' ),
+                'testimonial_phone' => __( 'Phone Number', 'ss_testimonial' ),
+                'testimonial_content' => __( 'Testimonial', 'ss_testimonial' ),
+                'delete_testimonial' => __( 'Action', 'ss_testimonial' )
+            );
+            return $columns;
+        }
+        
+        function get_bulk_actions() {
+            $actions = array(
+                'delete' => 'Delete'
+            );
+            return $actions;
+        }
+        
+        function get_sortable_columns() {
+            $sortable_columns = array(
+                'testimonial_name' => array('testimonial_name', true),
+                'testimonial_email' => array('testimonial_email', true),
+                'testimonial_phone' => array('testimonial_phone', true)
+            );
+            
+            return $sortable_columns;
+        }
+        
+        function process_bulk_action() {
+            global $wpdb;
+            $table_name = 'wp_bismoko_testimonial';
+
+            if ( 'delete' === $this->current_action() ) {
+                $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
+                if (is_array($ids)) $ids = implode(',', $ids);
+
+                if (!empty($ids)) {
+                    $wpdb->query("DELETE FROM $table_name WHERE testimonial_id IN($ids)");
+                }
+            }
+            
+            
+        }
+        
+        function prepare_items() {
+            global $wpdb;
+            $table_name = 'wp_bismoko_testimonial';
+
+            $per_page = 10; // constant, how much records will be shown per page
+
+            $columns = $this->get_columns();
+            $hidden = array();
+            $sortable = $this->get_sortable_columns();
+
+            // here we configure table headers, defined in our methods
+            $this->_column_headers = array($columns, $hidden, $sortable);
+
+            // [OPTIONAL] process bulk action if any
+            $this->process_bulk_action();
+
+            // will be used in pagination settings
+            $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
+
+            // prepare query params, as usual current page, order by and order direction
+            $paged = isset($_REQUEST['paged']) ? ($per_page * max(0, intval($_REQUEST['paged']) - 1)) : 0;
+            $orderby = (isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns()))) ? $_REQUEST['orderby'] : 'testimonial_name';
+            $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'asc';
+
+            // [REQUIRED] define $items array
+            // notice that last argument is ARRAY_A, so we will retrieve array
+            $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+
+            // [REQUIRED] configure pagination
+            $this->set_pagination_args(array(
+                'total_items' => $total_items, // total items defined above
+                'per_page' => $per_page, // per page constant defined at top of method
+                'total_pages' => ceil($total_items / $per_page) // calculate pages count
+            ));
+        }
+    }
+
+
 
 
     //-- run main class
