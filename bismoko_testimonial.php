@@ -134,12 +134,17 @@
                 if( count( $testimonial_errors ) == 0 ) {
                     global $wpdb;
                     
-                    $sql = "INSERT INTO " . $wpdb->prefix.$this->ss_testi_table_name . " (" . 
-                            implode( ',', array_keys( $testimonial_inputs ) ) . ") VALUES ('" . implode( "','", $testimonial_inputs) . "')";
-                    $wpdb->query( $sql );
-                    
-                    //-- clear the cache
-                    $wpdb->flush();
+                    //-- check data exist or not
+                    if( count( $testimonial_inputs ) > 0 ) {
+                        //-- insert into database
+                        $wpdb->insert( 
+                            $wpdb->prefix.$this->ss_testi_table_name,
+                            $testimonial_inputs
+                        );
+                        
+                        //-- clear the cache
+                        $wpdb->flush();
+                    }
                 }
             }
 
@@ -451,7 +456,7 @@
             $this->process_bulk_action();
 
             // will be used in pagination settings
-            $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
+            $total_items = $wpdb->get_var("SELECT COUNT(testimonial_id) FROM $table_name");
 
             // prepare query params, as usual current page, order by and order direction
             $paged = isset($_REQUEST['paged']) ? ($per_page * max(0, intval($_REQUEST['paged']) - 1)) : 0;
