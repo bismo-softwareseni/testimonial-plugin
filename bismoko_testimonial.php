@@ -131,20 +131,17 @@
                 
 
                 //-- insert into database if there is no error,
-                if( count( $testimonial_errors ) == 0 ) {
+                if( count( $testimonial_errors ) == 0 && count( $testimonial_inputs ) > 0 ) {
                     global $wpdb;
                     
-                    //-- check data exist or not
-                    if( count( $testimonial_inputs ) > 0 ) {
-                        //-- insert into database
-                        $wpdb->insert( 
-                            $wpdb->prefix.$this->ss_testi_table_name,
-                            $testimonial_inputs
-                        );
-                        
-                        //-- clear the cache
-                        $wpdb->flush();
-                    }
+                    //-- insert into database
+                    $wpdb->insert( 
+                        $wpdb->prefix.$this->ss_testi_table_name,
+                        $testimonial_inputs
+                    );
+                    
+                    //-- clear the cache
+                    $wpdb->flush();
                 }
             }
 
