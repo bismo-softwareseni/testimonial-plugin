@@ -447,7 +447,7 @@
                 if (is_array($ids)) $ids = implode(',', $ids);
 
                 if (!empty($ids)) {
-                    $wpdb->query("DELETE FROM $table_name WHERE testimonial_id IN($ids)");
+                    $wpdb->query("DELETE FROM $table_name WHERE testimonial_id IN($ids) AND blog_id=".get_current_blog_id());
                 }
             }
             
