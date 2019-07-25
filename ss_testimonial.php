@@ -323,7 +323,8 @@
                     //-- create main testimonial class object
                     $ss_testimonial_main = new SS_Testimonial_Main();
                     
-                    $testimonials = $wpdb->get_results( "SELECT * FROM " . $wpdb->base_prefix.$ss_testimonial_main->ss_testi_table_name . " order by RAND() limit 1" );
+                    $testimonials = $wpdb->get_results( "SELECT * FROM " . $wpdb->base_prefix.$ss_testimonial_main->ss_testi_table_name . " 
+                                                            WHERE blog_id=". get_current_blog_id() ." order by RAND() limit 1" );
             
                     foreach( $testimonials as $testimonial ) {
                 ?>
